@@ -4,8 +4,19 @@ import { motion } from 'motion/react';
 export default function CustomCursor() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
+    // Detect touch devices (mobile/tablet) — hide cursor on them
+    const checkTouch = () => {
+      setIsTouchDevice(
+        'ontouchstart' in window || 
+        navigator.maxTouchPoints > 0 || 
+        window.matchMedia('(pointer: coarse)').matches
+      );
+    };
+    checkTouch();
+
     const updateMousePosition = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
@@ -34,9 +45,12 @@ export default function CustomCursor() {
     };
   }, []);
 
+  // Don't render on touch/mobile devices
+  if (isTouchDevice) return null;
+
   return (
     <motion.div
-      className="fixed top-0 left-0 w-6 h-6 rounded-full pointer-events-none z-[9999] mix-blend-screen"
+      className="fixed top-0 left-0 w-6 h-6 rounded-full pointer-events-none z-[9999] mix-blend-screen hidden md:block"
       animate={{
         x: mousePosition.x - (isHovering ? 24 : 12),
         y: mousePosition.y - (isHovering ? 24 : 12),

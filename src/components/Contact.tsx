@@ -32,10 +32,11 @@ export default function Contact() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           access_key: WEB3FORMS_ACCESS_KEY,
-          subject: `🚀 New Portfolio Message from ${formData.name}`,
-          from_name: formData.name,
+          subject: `Portfolio Contact: Message from ${formData.name}`,
+          name: formData.name,
           email: formData.email || 'no-email-provided@example.com',
           message: formData.message,
+          replyto: formData.email || '',
         }),
       });
 
