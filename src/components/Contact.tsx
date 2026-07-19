@@ -1,14 +1,58 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Phone, Mail, MapPin, Globe, Copy, Check, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, Globe, Copy, Check, Send, Loader2 } from 'lucide-react';
+
+// ⚠️ Replace this with your real Web3Forms Access Key
+// Get it free from https://web3forms.com (enter your email, key will be sent)
+const WEB3FORMS_ACCESS_KEY = '9910b151-f77f-4384-ae81-e0fdabeb7418';
+
+type FormStatus = 'idle' | 'sending' | 'success' | 'error';
 
 export default function Contact() {
   const [copied, setCopied] = useState<string | null>(null);
+  const [formStatus, setFormStatus] = useState<FormStatus>('idle');
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim() || !formData.message.trim()) return;
+
+    setFormStatus('sending');
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: `🚀 New Portfolio Message from ${formData.name}`,
+          from_name: formData.name,
+          email: formData.email || 'no-email-provided@example.com',
+          message: formData.message,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setFormStatus('success');
+        setFormData({ name: '', email: '', message: '' });
+        setTimeout(() => setFormStatus('idle'), 4000);
+      } else {
+        setFormStatus('error');
+        setTimeout(() => setFormStatus('idle'), 4000);
+      }
+    } catch {
+      setFormStatus('error');
+      setTimeout(() => setFormStatus('idle'), 4000);
+    }
   };
 
   const contactInfo = [
@@ -17,6 +61,19 @@ export default function Contact() {
     { icon: Globe, label: 'LinkedIn', value: 'linkedin.com/in/ahmediqball', action: () => window.open('https://linkedin.com/in/ahmediqball', '_blank') },
     { icon: MapPin, label: 'Location', value: 'Block 17, Gulistan-e-Johar, Karachi', action: () => copyToClipboard('Block 17, Gulistan-e-Johar, Karachi', 'Location') }
   ];
+
+  const getButtonContent = () => {
+    switch (formStatus) {
+      case 'sending':
+        return <><Loader2 size={16} className="animate-spin" /> SENDING...</>;
+      case 'success':
+        return <><Check size={16} className="text-green-400" /> MESSAGE_SENT ✓</>;
+      case 'error':
+        return <><span className="text-red-400">ERROR</span> — TRY AGAIN</>;
+      default:
+        return <><Send size={16} /> SEND_MESSAGE</>;
+    }
+  };
 
   return (
     <section id="contact" className="pt-24 min-h-screen flex flex-col relative overflow-hidden bg-black">
@@ -55,17 +112,51 @@ export default function Contact() {
               <p className="mb-2">Establishing secure connection...</p>
               <p className="mb-6 text-[var(--color-electric-cyan)]">Connection established.</p>
               
-              <form className="flex flex-col gap-4 mt-6">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
                 <div className="flex flex-col gap-1">
-                   <label className="text-xs text-gray-500">Name</label>
-                   <input type="text" className="interactive bg-transparent border-b border-white/20 focus:border-[var(--color-electric-cyan)] outline-none py-1 transition-colors" placeholder="Enter your name" />
+                   <label className="text-xs text-gray-500">Name *</label>
+                   <input 
+                     type="text" 
+                     required
+                     value={formData.name}
+                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                     className="interactive bg-transparent border-b border-white/20 focus:border-[var(--color-electric-cyan)] outline-none py-1 transition-colors" 
+                     placeholder="Enter your name" 
+                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                   <label className="text-xs text-gray-500">Message</label>
-                   <textarea className="interactive bg-transparent border-b border-white/20 focus:border-[var(--color-electric-cyan)] outline-none py-1 h-20 resize-none transition-colors" placeholder="Enter your message..." />
+                   <label className="text-xs text-gray-500">Email</label>
+                   <input 
+                     type="email" 
+                     value={formData.email}
+                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                     className="interactive bg-transparent border-b border-white/20 focus:border-[var(--color-electric-cyan)] outline-none py-1 transition-colors" 
+                     placeholder="Enter your email (optional)" 
+                   />
                 </div>
-                <button type="button" className="interactive mt-4 w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded flex items-center justify-center gap-2 transition-colors text-[var(--color-electric-cyan)]">
-                  <Send size={16} /> SEND_MESSAGE
+                <div className="flex flex-col gap-1">
+                   <label className="text-xs text-gray-500">Message *</label>
+                   <textarea 
+                     required
+                     value={formData.message}
+                     onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                     className="interactive bg-transparent border-b border-white/20 focus:border-[var(--color-electric-cyan)] outline-none py-1 h-20 resize-none transition-colors" 
+                     placeholder="Enter your message..." 
+                   />
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={formStatus === 'sending'}
+                  className={`interactive mt-4 w-full py-3 border border-white/10 rounded flex items-center justify-center gap-2 transition-all duration-300
+                    ${formStatus === 'success' 
+                      ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+                      : formStatus === 'error'
+                      ? 'bg-red-500/10 border-red-500/30 text-red-400'
+                      : 'bg-white/5 hover:bg-white/10 text-[var(--color-electric-cyan)]'}
+                    ${formStatus === 'sending' ? 'opacity-70 cursor-not-allowed' : ''}
+                  `}
+                >
+                  {getButtonContent()}
                 </button>
               </form>
             </div>
