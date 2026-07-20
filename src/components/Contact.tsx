@@ -4,7 +4,7 @@ import { Phone, Mail, MapPin, Globe, Copy, Check, Send, Loader2 } from 'lucide-r
 
 // ⚠️ Replace this with your real Web3Forms Access Key
 // Get it free from https://web3forms.com (enter your email, key will be sent)
-const WEB3FORMS_ACCESS_KEY = '9910b151-f77f-4384-ae81-e0fdabeb7418';
+const WEB3FORMS_ACCESS_KEY = '6833bb5c-cae7-42cc-bb48-3e1152291453';
 
 type FormStatus = 'idle' | 'sending' | 'success' | 'error';
 
