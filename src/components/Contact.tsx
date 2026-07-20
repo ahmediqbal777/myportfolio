@@ -27,17 +27,22 @@ export default function Contact() {
     setFormStatus('sending');
 
     try {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const payload: Record<string, string> = {
           access_key: WEB3FORMS_ACCESS_KEY,
           subject: `Portfolio Contact: Message from ${formData.name}`,
           name: formData.name,
-          email: formData.email || 'no-email-provided@example.com',
           message: formData.message,
-          replyto: formData.email || '',
-        }),
+        };
+
+        if (formData.email.trim()) {
+          payload.email = formData.email;
+          payload.replyto = formData.email;
+        }
+
+        const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
